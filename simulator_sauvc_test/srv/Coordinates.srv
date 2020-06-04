@@ -1,0 +1,4 @@
+int16 dummy
+---
+float32[] x
+float32[] y
