@@ -2,6 +2,7 @@
 #define SIMULATOR_SAUVC_TEST_H
 
 #include <ros/ros.h>
+#include<ros/package.h>
 
 #include <chrono>
 #include <iostream>
@@ -21,6 +22,9 @@
 #include <std_msgs/Int8.h>
 #include <std_msgs/UInt8.h>
 #include <vectornav/VectorNavData.h>
+//#include <sauvc_image_processing/image_processor.h>
+#include "simulator_sauvc_test/image_processor.h"
+
 using namespace std;
 using namespace cv;
 
@@ -44,6 +48,8 @@ private:
 
   bool ip_status_front, ip_status_bottom, status_gate, status_bucket,
       status_flare,status_yellow_flare;
+
+  ImageProcessor YF,RF,GT,BU;
 
   bool isEnabledFront();
   bool isEnabledBottom();
