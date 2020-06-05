@@ -31,7 +31,8 @@ generate_messages(
 
 find_package(OpenCV 3.2 REQUIRED)
 
-catkin_package()
+catkin_package(
+)
 
 include_directories(
   include
@@ -43,4 +44,6 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 add_library(simulator_sauvc_test_lib include/simulator_sauvc_test/simulator_sauvc_test.h src/simulator_sauvc_test.cpp)
 
 add_executable(simulator_sauvc_test include/simulator_sauvc_test/simulator_sauvc_test.h src/main.cpp)
-target_link_libraries(simulator_sauvc_test simulator_sauvc_test_lib ${catkin_LIBRARIES})
+target_link_libraries(simulator_sauvc_test simulator_sauvc_test_lib ${catkin_LIBRARIES}
+ ${OpenCV_LIBS})
+
