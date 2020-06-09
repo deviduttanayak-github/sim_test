@@ -18,6 +18,10 @@ SimSauvcTest::SimSauvcTest(ros::NodeHandle _nh) : nh(_nh), it(_nh) {
       "/enable_yellow_flare_server", 1, &SimSauvcTest::enableYellowFlareServer, this);
 
   YF=ImageProcessor(ros::package::getPath("simulator_sauvc_test")+"/config/yellow_flare_ip.conf");
+  RF=ImageProcessor(ros::package::getPath("simulator_sauvc_test")+"/config/red_flare_ip.conf");
+  BU=ImageProcessor(ros::package::getPath("simulator_sauvc_test")+"/config/bucket_ip.conf");
+  GT_red=ImageProcessor(ros::package::getPath("simulator_sauvc_test")+"/config/gate_red_ip.conf");
+  GT_green=ImageProcessor(ros::package::getPath("simulator_sauvc_test")+"/config/gate_green_ip.conf");
 
   status_gate = status_bucket = status_flare = status_yellow_flare =0;
 }
@@ -47,8 +51,8 @@ void SimSauvcTest::process_next_image_front(
 
   try {
     cv_bridge::toCvShare(image_frame, "bgr8")->image.copyTo(front_image);
-    imshow("server_side",front_image);
-    waitKey(30);
+    //imshow("server_side",front_image);
+    //waitKey(30);
     //ROS_INFO("processing next image front camera");
     //flip(front_image, front_image, -1);
     // flip(frame_bottom,frame_bottom,0);
@@ -121,6 +125,44 @@ void SimSauvcTest::enableGateServer(const std_msgs::UInt8::ConstPtr &msg) {
 bool SimSauvcTest::getGateCoordinates(
     simulator_sauvc_test::Coordinates::Request &req,
     simulator_sauvc_test::Coordinates::Response &res) {
+
+    if(req.dummy!=1){
+      std::cout<<"\n## Request Denied ##\n";
+      return false;
+    }
+    std::cout << "## Request Accepted ##" << '\n';
+    cv::cvtColor(front_image,GT_red.hsv_frame, cv::COLOR_BGR2HSV);
+    cv::blur( GT_red.hsv_frame,GT_red.gauss_frame, Size(3,3) );
+    GT_green.gauss_frame=GT_red.gauss_frame.clone();
+    cv::inRange(GT_red.gauss_frame, Scalar(GT_red.thresh_l_B, GT_red.thresh_l_G, GT_red.thresh_l_R), Scalar(GT_red.thresh_h_B, GT_red.thresh_h_G ,GT_red.thresh_h_R),GT_red.gray_frame);
+    cv::inRange(GT_green.gauss_frame, Scalar(GT_green.thresh_l_B, GT_green.thresh_l_G, GT_green.thresh_l_R), Scalar(GT_green.thresh_h_B, GT_green.thresh_h_G ,GT_green.thresh_h_R),GT_green.gray_frame);
+    GT_red.gray_frame=(GT_red.gray_frame | GT_green.gray_frame);
+    GT_red.morph_frame=GT_red.morph_op(GT_red.gray_frame);
+    cv::Canny( GT_red.morph_frame,GT_red.canny_frame,GT_red.canny_low_thresh,GT_red.canny_ratio,GT_red.canny_kernel_size);
+
+    vector<vector<Point> > contours;
+    vector<Vec4i> hierarchy;
+    findContours(GT_red.canny_frame,contours, hierarchy,RETR_TREE,CHAIN_APPROX_SIMPLE);
+    vector<vector<Point> > contours_poly(contours.size());
+    vector<Rect> boundRect(contours.size());
+    vector<Point2f> centres(contours.size());
+    for(size_t i=0;i<contours.size();i++){
+      approxPolyDP(contours[i],contours_poly[i],9,true);
+      boundRect[i]=boundingRect(contours_poly[i]);
+    }
+    //top-left(tl) and bottom-right(br)
+    int min_x=1000,min_y=1000, max_x=0, max_y=0;
+    for(size_t i=0;i<contours.size();i++){
+      int x1,x2,y1,y2;
+      min_x=min(min_x,(boundRect[i].tl()).x);
+      max_x=max(max_x,(boundRect[i].br()).x);
+      min_y=min(min_y,(boundRect[i].tl()).y);
+      max_y-max(max_y,(boundRect[i].br()).y);
+      }
+    res.x.push_back(min_x);
+    res.x.push_back(max_x);
+    res.y.push_back(min_y);
+    res.y.push_back(max_y);
   return true;
 }
 
@@ -149,7 +191,40 @@ void SimSauvcTest::enableBucketServer(const std_msgs::UInt8::ConstPtr &msg) {
 bool SimSauvcTest::getBucketCoordinates(
     simulator_sauvc_test::Coordinates::Request &req,
     simulator_sauvc_test::Coordinates::Response &res) {
-  return true;
+
+      if(req.dummy!=1){
+        std::cout<<"\n## Request Denied ##\n";
+        return false;
+      }
+      std::cout << "## Request Accepted ##" << '\n';
+      cv::cvtColor(front_image,BU.hsv_frame, cv::COLOR_BGR2HSV);
+      cv::blur( BU.hsv_frame,BU.gauss_frame, Size(3,3) );
+      cv::inRange(BU.gauss_frame, Scalar(BU.thresh_l_B, BU.thresh_l_G, BU.thresh_l_R), Scalar(BU.thresh_h_B, BU.thresh_h_G ,BU.thresh_h_R),BU.gray_frame);
+      BU.morph_frame=BU.morph_op(BU.gray_frame);
+      cv::Canny( BU.morph_frame,BU.canny_frame,BU.canny_low_thresh,BU.canny_ratio,BU.canny_kernel_size );
+      vector<vector<Point> > contours;
+      vector<Vec4i> hierarchy;
+
+      findContours(BU.canny_frame,contours, hierarchy,RETR_TREE,CHAIN_APPROX_SIMPLE);
+      vector<vector<Point> > contours_poly(contours.size());
+      vector<Rect> boundRect(contours.size());
+      vector<Point2f> centres(contours.size());
+      for(size_t i=0;i<contours.size();i++){
+        approxPolyDP(contours[i],contours_poly[i],9,true);
+        boundRect[i]=boundingRect(contours_poly[i]);
+      }
+
+      for(size_t i=0;i<contours.size();i++){
+        if(BU.filter_points((boundRect[i].tl()).x)){
+          res.x.push_back(boundRect[i].tl().x);
+          res.y.push_back(boundRect[i].tl().y);
+          res.x.push_back(boundRect[i].br().x);
+          res.y.push_back(boundRect[i].br().y);
+        }
+      }
+    BU.tl_x.clear();
+    return true;
+
 }
 
 void SimSauvcTest::imageProcessingBucket() {}
@@ -176,7 +251,39 @@ void SimSauvcTest::enableFlareServer(const std_msgs::UInt8::ConstPtr &msg) {
 bool SimSauvcTest::getFlareCoordinates(
     simulator_sauvc_test::Coordinates::Request &req,
     simulator_sauvc_test::Coordinates::Response &res) {
-  return true;
+
+      if(req.dummy!=1){
+        std::cout<<"\n## Request Denied ##\n";
+        return false;
+      }
+      std::cout << "## Request Accepted ##" << '\n';
+      cv::cvtColor(front_image,RF.hsv_frame, cv::COLOR_BGR2HSV);
+      cv::blur( RF.hsv_frame,RF.gauss_frame, Size(3,3) );
+      cv::inRange(RF.gauss_frame, Scalar(RF.thresh_l_B, RF.thresh_l_G, RF.thresh_l_R), Scalar(RF.thresh_h_B, RF.thresh_h_G ,RF.thresh_h_R),RF.gray_frame);
+      RF.morph_frame=RF.morph_op(RF.gray_frame);
+      cv::Canny( RF.morph_frame,RF.canny_frame,RF. canny_low_thresh,RF.canny_ratio,RF.canny_kernel_size );
+      vector<vector<Point> > contours;
+      vector<Vec4i> hierarchy;
+
+      findContours(RF.canny_frame,contours, hierarchy,RETR_TREE,CHAIN_APPROX_SIMPLE);
+      vector<vector<Point> > contours_poly(contours.size());
+      vector<Rect> boundRect(contours.size());
+      vector<Point2f> centres(contours.size());
+      for(size_t i=0;i<contours.size();i++){
+        approxPolyDP(contours[i],contours_poly[i],9,true);
+        boundRect[i]=boundingRect(contours_poly[i]);
+      }
+
+      for(size_t i=0;i<contours.size();i++){
+        if(RF.filter_points((boundRect[i].tl()).x)){
+          res.x.push_back(boundRect[i].tl().x);
+          res.y.push_back(boundRect[i].tl().y);
+          res.x.push_back(boundRect[i].br().x);
+          res.y.push_back(boundRect[i].br().y);
+        }
+      }
+    RF.tl_x.clear();
+    return true;
 }
 
 void SimSauvcTest::imageProcessingFlare() {}
@@ -184,20 +291,6 @@ void SimSauvcTest::imageProcessingFlare() {}
 //-------------end flare server----------------------------------------------
 
 // ---------- yellow_flare -------------------------------------------------
-std::vector<int> tl_x, tl_y;
-// int thresh_l_B = 0, thresh_l_G = 112, thresh_l_R = 43;
-// int thresh_h_B = 51, thresh_h_G = 255, thresh_h_R = 255;
-//
-// int canny_low_thresh = 0, canny_ratio = 3, canny_kernel_size = 3;
-// int hl_thresh_detect = 50, hl_min_line_length = 1, hl_max_line_gap = 1;//change the values
-//
-// int morph_operator = 0, morph_elem = 0, morph_size = 1;
-// int x_order=2, d_depth=CV_16S;
-// double scale=1,delta=0;
-// int sobel_kernel_size=1;
-// int dilation_size=2;
-// int x_parameter=50 , y_parameter=20;
-
 void SimSauvcTest::enableYellowFlareServer(const std_msgs::UInt8::ConstPtr &msg) {
   //std::cout << "/* message */" << '\n';
   if (isEnabledYellowFlareServer() == (msg->data))
@@ -232,49 +325,41 @@ bool SimSauvcTest::getYellowFlareCoordinates(
     cv::Canny( YF.morph_frame,YF.canny_frame,YF. canny_low_thresh,YF.canny_ratio,YF.canny_kernel_size );
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
-    imshow("server_canny",YF.canny_frame);
-    waitKey(200);
+    //imshow("server_canny",YF.canny_frame);
+    //waitKey(200);
 
     findContours(YF.canny_frame,contours, hierarchy,RETR_TREE,CHAIN_APPROX_SIMPLE);
     vector<vector<Point> > contours_poly(contours.size());
     vector<Rect> boundRect(contours.size());
     vector<Point2f> centres(contours.size());
-    cout<<"contours size: "<<contours.size()<<endl;
+    //cout<<"contours size: "<<contours.size()<<endl;
     for(size_t i=0;i<contours.size();i++){
-    approxPolyDP(contours[i],contours_poly[i],9,true);
-    boundRect[i]=boundingRect(contours_poly[i]);
+      approxPolyDP(contours[i],contours_poly[i],9,true);
+      boundRect[i]=boundingRect(contours_poly[i]);
     }
 
     for(size_t i=0;i<contours.size();i++){
-      cout<<(boundRect[i].tl()).x<<" "<<(boundRect[i].tl()).y<<endl;
-      cout<<(boundRect[i].br()).x<<" "<<(boundRect[i].br()).y<<endl;
-      if(resolve((boundRect[i].tl()).x,(boundRect[i].tl()).y)){
+      //cout<<(boundRect[i].tl()).x<<" "<<(boundRect[i].tl()).y<<endl;
+      //cout<<(boundRect[i].br()).x<<" "<<(boundRect[i].br()).y<<endl;
+      if(YF.filter_points((boundRect[i].tl()).x)){
         res.x.push_back(boundRect[i].tl().x);
         res.y.push_back(boundRect[i].tl().y);
         res.x.push_back(boundRect[i].br().x);
         res.y.push_back(boundRect[i].br().y);
       }
     // drawContours(drawing,contours_poly,int(i),Scalar(0,255,0));
-    // rectangle(front_image,boundRect[i].tl(), boundRect[i].br(),Scalar(0,255,0));
+    //cout<<"## array size ##\n";
+    //cout<<YF.tl_x.size()<<" : "<<i<<" \n";
+    //rectangle(front_image,boundRect[i].tl(), boundRect[i].br(),Scalar(0,255,0));
     }
     imshow("serve_final_bbox",front_image);
     waitKey(300);
     // end contouring-------
   //cout<<"tl_x.size():"<<tl_x.size();
   cout<<"\nresponse array size : "<<res.x.size();
-  tl_x.clear(); tl_y.clear();
+  YF.tl_x.clear();
   return true;
 
 }
-
-bool SimSauvcTest::resolve(int x, int y){
-  for(int i=0; i<tl_x.size(); i++){
-    if(abs(tl_x[i]-x)<15) return false;
-    else if(abs(tl_y[i]-y)<15) return false;
-  }
-  tl_x.push_back(x); tl_y.push_back(y);
-  return true;
-}
-
 
 // ---------- end ---------------------------------------------------------

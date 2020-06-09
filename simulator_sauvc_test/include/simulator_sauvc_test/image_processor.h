@@ -42,12 +42,15 @@ public:
   float angle;
 
   std::vector<Vec4i> lines;
+  std::vector<int> tl_x;
 
   Vec4i line1,line2;
 
   Mat morph_op(Mat src);
 
   float angle_finder(Vec4i line);
+
+  bool filter_points(int x);
 
 };
 #endif

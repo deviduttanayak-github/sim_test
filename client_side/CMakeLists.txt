@@ -11,8 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs genmsg
-  message_generation
-  simulator_sauvc_test
+  message_generation  
+simulator_sauvc_test
 sensor_msgs
 image_transport
 cv_bridge
@@ -111,7 +111,7 @@ find_package(OpenCV 3.2 REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-  LIBRARIES client_side
+#  LIBRARIES client_side
 #  CATKIN_DEPENDS roscpp rospy
 #  DEPENDS system_lib
 )

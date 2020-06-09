@@ -49,7 +49,7 @@ private:
   bool ip_status_front, ip_status_bottom, status_gate, status_bucket,
       status_flare,status_yellow_flare;
 
-  ImageProcessor YF,RF,GT,BU;
+  ImageProcessor YF,RF,GT_red,GT_green,BU;
 
   bool isEnabledFront();
   bool isEnabledBottom();
@@ -58,7 +58,7 @@ private:
   bool isEnabledFlareServer();
 
   bool isEnabledYellowFlareServer();
-  bool resolve(int x,int y);
+  //bool resolve(int x,int y);
 
   void enableFront(const std_msgs::UInt8::ConstPtr &msg);
   void enableBottom(const std_msgs::UInt8::ConstPtr &msg);
