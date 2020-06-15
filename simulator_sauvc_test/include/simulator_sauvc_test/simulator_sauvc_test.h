@@ -49,7 +49,7 @@ private:
   bool ip_status_front, ip_status_bottom, status_gate, status_bucket,
       status_flare,status_yellow_flare;
 
-  ImageProcessor YF,RF,GT_red,GT_green,BU;
+  ImageProcessor YF,RF,GT,BU;
 
   bool isEnabledFront();
   bool isEnabledBottom();

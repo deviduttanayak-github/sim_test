@@ -214,10 +214,30 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 # catkin_add_nosetests(test)
 
 
-add_executable(yellow src/client.cpp)
+add_executable(yellow src/client_yellow_flare.cpp)
 target_link_libraries(yellow ${catkin_LIBRARIES}
  ${OpenCV_LIBS})
 add_dependencies(yellow client_side_generate_messages_cpp)
+
+add_executable(gate src/client_gate.cpp)
+target_link_libraries(gate ${catkin_LIBRARIES}
+ ${OpenCV_LIBS})
+add_dependencies(gate client_side_generate_messages_cpp)
+
+add_executable(bucket src/client_red_bucket.cpp)
+target_link_libraries(bucket ${catkin_LIBRARIES}
+ ${OpenCV_LIBS})
+add_dependencies(bucket client_side_generate_messages_cpp)
+
+add_executable(red src/client_red_flare.cpp)
+target_link_libraries(red ${catkin_LIBRARIES}
+ ${OpenCV_LIBS})
+add_dependencies(red client_side_generate_messages_cpp)
+
+add_executable(tool src/gate_thresh_tool.cpp)
+target_link_libraries(tool ${catkin_LIBRARIES}
+ ${OpenCV_LIBS})
+add_dependencies(tool client_side_generate_messages_cpp)
 
 add_executable(test_ser src/test_sim.cpp)
 target_link_libraries(test_ser ${catkin_LIBRARIES}
