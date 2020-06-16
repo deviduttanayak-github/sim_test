@@ -31,10 +31,10 @@ void make_boundig_box(float x1,float x2,float y1,float y2);
 void imageCallback(const sensor_msgs::ImageConstPtr& frame) {
   cout<<"## inside callback ##\n";
   if(gate_client.call(gate_server)){
-    ROS_INFO("Coordinates are: [%f,%f,%f] ##",
+    ROS_INFO("Coordinates are: [%f,%f,%f,%f] ##",
               gate_server.response.x[0],gate_server.response.y[0],
-              gate_server.response.y[1]);
-    
+              gate_server.response.x[1],gate_server.response.y[1]);
+
   cv::Mat src1;
   try{
     src=cv_bridge::toCvShare(frame, "bgr8")->image;
@@ -44,37 +44,22 @@ void imageCallback(const sensor_msgs::ImageConstPtr& frame) {
     ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
               frame->encoding.c_str());
         }
-  //cv::imshow("inside_function",src);
-  //cv::waitKey(30);
   src1=src.clone();
-  float maxx=gate_server.response.x[0];
-  float miny=gate_server.response.y[0];
-  float maxy=gate_server.response.y[1];
-  float r=maxy-miny;
 
-  if(maxx!=0 && maxy!=0 && r<190)
-        {  //ROS_INFO("inside loop");
-           line( src1, Point(maxx,miny), Point(maxx,maxy), Scalar(0,0,255), 3, LINE_AA);
-           line( src1, Point(maxx,miny), Point((maxx+r*1.732),miny), Scalar(0,0,255), 3, LINE_AA);
-           line( src1, Point(maxx,maxy), Point((maxx+r*1.732),maxy), Scalar(0,0,255), 3, LINE_AA);
-           line( src1, Point((maxx+r*1.732), miny), Point((maxx+r*1.732),maxy), Scalar(0,0,255), 3, LINE_AA);
-           circle(src1,Point((maxx+r*0.860),(maxy+miny)/2),400/32,Scalar(255,0,0),FILLED,LINE_8);
-               
-        }
-
-
+  src1=src.clone();
+  line(src1,Point(gate_server.response.x[0],gate_server.response.y[0]), Point(gate_server.response.x[1],gate_server.response.y[1]), Scalar(0,0,255),2,8,0);
+  //line(src1,Point(YF_server.response.x[3],YF_server.response.y[3]), Point(YF_server.response.x[2],YF_server.response.y[2]), Scalar(0,0,255),2,8,0);
   cv::imshow("src",src1);
-  waitKey(1);
-
-
+  waitKey(10);
 
     }
+    
   else{
     ROS_INFO("Failed to call service : [gate_flare_coordinates]");
   }
 
 
- 
+
  // waitKey(3000);
 
 

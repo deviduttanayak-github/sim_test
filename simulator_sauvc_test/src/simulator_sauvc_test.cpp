@@ -21,7 +21,7 @@ SimSauvcTest::SimSauvcTest(ros::NodeHandle _nh) : nh(_nh), it(_nh) {
   RF=ImageProcessor(ros::package::getPath("simulator_sauvc_test")+"/config/red_flare_ip.conf");
   BU=ImageProcessor(ros::package::getPath("simulator_sauvc_test")+"/config/bucket_ip.conf");
   GT=ImageProcessor(ros::package::getPath("simulator_sauvc_test")+"/config/gate_ip.conf");
-  //GT_green=ImageProcessor(ros::package::getPath("simulator_sauvc_test")+"/config/gate_green_ip.conf");
+  GT_green=ImageProcessor(ros::package::getPath("simulator_sauvc_test")+"/config/gate_green_ip.conf");
 
   status_gate = status_bucket = status_flare = status_yellow_flare =0;
 }
@@ -51,8 +51,7 @@ void SimSauvcTest::process_next_image_front(
 
   try {
     cv_bridge::toCvShare(image_frame, "bgr8")->image.copyTo(front_image);
-    //imshow("server_side",front_image);
-    //waitKey(30);
+
     //ROS_INFO("processing next image front camera");
     //flip(front_image, front_image, -1);
     // flip(frame_bottom,frame_bottom,0);
@@ -133,81 +132,43 @@ bool SimSauvcTest::getGateCoordinates(
     std::cout << "## Request Accepted ##" << '\n';
     cv::cvtColor(front_image,GT.hsv_frame, cv::COLOR_BGR2HSV);
     cv::blur( GT.hsv_frame,GT.gauss_frame, Size(3,3) );
-    //GT_green.gauss_frame=GT_red.gauss_frame.clone();
+    GT_green.gauss_frame=GT.gauss_frame.clone();
     cv::inRange(GT.gauss_frame, Scalar(GT.thresh_l_B, GT.thresh_l_G, GT.thresh_l_R), Scalar(GT.thresh_h_B, GT.thresh_h_G ,GT.thresh_h_R),GT.gray_frame);
-    //cv::inRange(GT_green.gauss_frame, Scalar(GT_green.thresh_l_B, GT_green.thresh_l_G, GT_green.thresh_l_R), Scalar(GT_green.thresh_h_B, GT_green.thresh_h_G ,GT_green.thresh_h_R),GT_green.gray_frame);
-   // GT_red.gray_frame=(GT_red.gray_frame | GT_green.gray_frame);
-    GT.morph_frame=GT.morph_op(GT.gray_frame);
-    cv::Canny( GT.morph_frame,GT.canny_frame,GT.canny_low_thresh,GT.canny_ratio,GT.canny_kernel_size);
+    cv::inRange(GT_green.gauss_frame, Scalar(GT_green.thresh_l_B, GT_green.thresh_l_G, GT_green.thresh_l_R), Scalar(GT_green.thresh_h_B, GT_green.thresh_h_G ,GT_green.thresh_h_R),GT_green.gray_frame);
+    GT.gray_frame=(GT.gray_frame | GT_green.gray_frame);
+    //GT.morph_frame=GT.morph_op(GT.gray_frame);
+    cv::Canny( GT.gray_frame,GT.canny_frame,GT.canny_low_thresh,GT.canny_ratio,GT.canny_kernel_size);
 
-   /* vector<vector<Point> > contours;
-    vector<Vec4i> hierarchy;
-    findContours(GT_red.canny_frame,contours, hierarchy,RETR_TREE,CHAIN_APPROX_SIMPLE);
-    vector<vector<Point> > contours_poly(contours.size());
-    vector<Rect> boundRect(contours.size());
-    vector<Point2f> centres(contours.size());
-    for(size_t i=0;i<contours.size();i++){
-      approxPolyDP(contours[i],contours_poly[i],9,true);
-      boundRect[i]=boundingRect(contours_poly[i]);
-    }
-    //top-left(tl) and bottom-right(br)
+    // //top-left(tl) and bottom-right(br)
     int min_x=1000,min_y=1000, max_x=0, max_y=0;
-    for(size_t i=0;i<contours.size();i++){
-      int x1,x2,y1,y2;
-      min_x=min(min_x,(boundRect[i].tl()).x);
-      max_x=max(max_x,(boundRect[i].br()).x);
-      min_y=min(min_y,(boundRect[i].br()).y);
-      max_y-max(max_y,(boundRect[i].tl()).y);
-      }
-    res.x.push_back(min_x);
-    res.x.push_back(max_x);
-    res.y.push_back(min_y);
-    res.y.push_back(max_y);*/
 
    //--------using hough line------------
-
+    float a;
     vector<Vec4i> linesP; // will hold the results of the detection
-    HoughLinesP(GT.canny_frame, linesP, 1, CV_PI/180,50, 50, 10 ); // runs the actual detection
-
-    float a,miny=1000,maxy=0,maxx=0;
+    HoughLinesP(GT.canny_frame, linesP, 1, CV_PI/180,50, 50, 50 ); // runs the actual detection
     for( size_t i = 0; i < linesP.size(); i++ )
     {
         Vec4i l = linesP[i];
         if(l[2]!=l[0])
-        {  float slope =(float) ((l[3] -l[1])/(l[2]-l[0]));
-        a = -1*atan(slope)*(180/CV_PI);
-    	}
-       else a=90;
+        {
+          float slope =(float) ((l[3] -l[1])/(l[2]-l[0]));
+          a = -1*atan(slope)*(180/CV_PI);
+    	  }
+        else a=90;
 
-    if (abs(a)>85 && min(l[1],l[3])>150){
-        float y=min(l[3],l[1]);
-         miny=min(miny,y);
-    float y2=max(l[3],l[1]);
-         maxy=max(maxy,y2);
-    float x= max(l[0],l[2]);
-         maxx=max(maxx,x);
-     ROS_INFO("detected gate");
-    res.x.push_back(maxx);
-    res.y.push_back(miny);
-    res.y.push_back(maxy);
-     //line( gauss_frame_3, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
-     //imshow("Detected Lines (in red) - Probabilistic Line Transform", gauss_frame_3);
-     //waitKey(1);
-    }  }
-    int r=maxy-miny;
-    //-------written in client side---------
-   /* if(maxx!=0 && maxy!=0 && r<190)
-        {  //ROS_INFO("inside loop");
-           line( front_image, Point(maxx,miny), Point(maxx,maxy), Scalar(0,0,255), 3, LINE_AA);
-           line( front_image, Point(maxx,miny), Point((maxx+r*1.732),miny), Scalar(0,0,255), 3, LINE_AA);
-           line( front_image, Point(maxx,maxy), Point((maxx+r*1.732),maxy), Scalar(0,0,255), 3, LINE_AA);
-           line( front_image, Point((maxx+r*1.732), miny), Point((maxx+r*1.732),maxy), Scalar(0,0,255), 3, LINE_AA);
-           circle(front_image,Point((maxx+r*0.860),(maxy+miny)/2),400/32,Scalar(255,0,0),FILLED,LINE_8);
-
-        }*/
-    res.x.push_back(maxx);
-    res.y.push_back(miny);
-    res.y.push_back(maxy);
+        if (abs(a)>85 /* &&  min(l[1],l[3])>150 */){
+        //line( temp, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
+        min_x=min(min_x,(min(l[0],l[2])));
+        max_x=max(max_x,(max(l[0],l[2])));
+        min_y=min(min_y,(min(l[1],l[3])));
+        max_y=max(max_y,(max(l[1],l[3])));
+        //ROS_INFO("\n points \n [%f,%f,%f,%f] \n",min_x,min_y,max_x,max_y);
+        }
+    }
+      res.x.push_back(min_x);
+      res.x.push_back(max_x);
+      res.y.push_back(min_y);
+      res.y.push_back(max_y);
 
   return true;
 }
@@ -378,32 +339,20 @@ bool SimSauvcTest::getYellowFlareCoordinates(
     vector<vector<Point> > contours_poly(contours.size());
     vector<Rect> boundRect(contours.size());
     vector<Point2f> centres(contours.size());
-    //cout<<"contours size: "<<contours.size()<<endl;
     for(size_t i=0;i<contours.size();i++){
       approxPolyDP(contours[i],contours_poly[i],9,true);
       boundRect[i]=boundingRect(contours_poly[i]);
     }
 
     for(size_t i=0;i<contours.size();i++){
-      //cout<<(boundRect[i].tl()).x<<" "<<(boundRect[i].tl()).y<<endl;
-      //cout<<(boundRect[i].br()).x<<" "<<(boundRect[i].br()).y<<endl;
       if(YF.filter_points((boundRect[i].tl()).x)){
         res.x.push_back(boundRect[i].tl().x);
         res.y.push_back(boundRect[i].tl().y);
         res.x.push_back(boundRect[i].br().x);
         res.y.push_back(boundRect[i].br().y);
       }
-    // drawContours(drawing,contours_poly,int(i),Scalar(0,255,0));
-    //cout<<"## array size ##\n";
-    //cout<<YF.tl_x.size()<<" : "<<i<<" \n";
     rectangle(front_image,boundRect[i].tl(), boundRect[i].br(),Scalar(0,255,0));
     }
-    imshow("serve_final_bbox",front_image);
-    waitKey(1);
-    // waitKey(300);
-    // end contouring-------
-  //cout<<"tl_x.size():"<<tl_x.size();
-  cout<<"\nresponse array size : "<<res.x.size();
   YF.tl_x.clear();
   return true;
 

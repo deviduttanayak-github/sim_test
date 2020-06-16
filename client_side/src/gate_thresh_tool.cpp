@@ -27,14 +27,14 @@ const String window_name = "smoothing Demo";
 const String trackbar_value = "View4";
   int i_value = 0;
   int M_value=15;
-  int DELAY_BLUR = 100; 
+  int DELAY_BLUR = 100;
   int i;
   int ddepth=CV_16S;
   int ksize;
   int kSize;
   int scale=1;
   int delta=0;
-  
+
 
 int erosion_elem = 0;
 int erosion_size = 0;
@@ -98,19 +98,19 @@ int main(int argc,char** argv)
 {
 
 
-  VideoCapture cap("/home/pratyush/Downloads/Gate_YFlare_Buckets.avi");
+  VideoCapture cap("/media/devid/D_D_N/simulator/videos/Gate_YFlare_Buckets.avi");
 //VideoWriter vd("/home/prats/catkin_ws/src/saved1.mp4",CV_FOURCC('M','J','P','G'),15,Size(100,100),true);
 
   while (1) {
     cap>>frame;
-    
+
    // waitKey(50);
     cvtColor(frame,frame_hsv,COLOR_BGR2HSV);
-    imshow("view2",frame_hsv); 
+    imshow("view2",frame_hsv);
     waitKey(1);
-   
+
    namedWindow(window_detection_name);
-  
+
    // Trackbars to set thresholds for HSV values
     createTrackbar("Low H", window_detection_name, &low_H, max_value_H, on_low_H_thresh_trackbar);
     createTrackbar("High H", window_detection_name, &high_H, max_value_H, on_high_H_thresh_trackbar);
@@ -118,20 +118,20 @@ int main(int argc,char** argv)
     createTrackbar("High S", window_detection_name, &high_S, max_value, on_high_S_thresh_trackbar);
     createTrackbar("Low V", window_detection_name, &low_V, max_value, on_low_V_thresh_trackbar);
     createTrackbar("High V", window_detection_name, &high_V, max_value, on_high_V_thresh_trackbar);
-       
-    
+
+
         // Detect the object based on HSV Range Values
         inRange(frame_hsv, Scalar(low_H, low_S, low_V), Scalar(high_H, high_S, high_V), frame_threshold);
         // Show the frames
         imshow(window_detection_name, frame_threshold);
-       
+
         createTrackbar( trackbar_value,
                   window_name, &i_value,
                   M_value, smooth_Demo );
-       
+
           i=(i_value)*2+1;
-           
-         
+
+
   namedWindow( "Erosion Demo", WINDOW_AUTOSIZE );
   namedWindow( "Dilation Demo", WINDOW_AUTOSIZE );
   moveWindow( "Dilation Demo", dst.cols, 0 );
@@ -188,16 +188,16 @@ else a=90;
           line( frame, Point(maxx,maxy), Point((maxx+r*1.732),maxy), Scalar(0,0,255), 3, LINE_AA);
             line( frame, Point((maxx+r*1.732), miny), Point((maxx+r*1.732),maxy), Scalar(0,0,255), 3, LINE_AA);
         circle(frame,Point((maxx+r*0.860),(maxy+miny)/2),400/32,Scalar(255,0,0),FILLED,LINE_8);
-               
+
 }
-     imshow("view",frame);   
-                                                                                                                                                               
-    
+     imshow("view",frame);
+
+
     // Show results
     //imshow("Source", src);
     //imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
-    
-    
+
+
 
 }
 return 0;
@@ -206,13 +206,13 @@ return 0;
 /*vd.write(dilation_dst);i
   int key=waitKey(100);
     if(key==27)break;*/
-    
-    
+
+
 
 void smooth_Demo( int, void* ){
 
       blur( erosion_dst, dst, Size( i, i ), Point(-1,-1) );
-      imshow( window_name, dst );    
+      imshow( window_name, dst );
 }
 void Erosion( int, void* )
 {
@@ -238,7 +238,3 @@ void Dilation( int, void* )
   dilate( dst, dilation_dst, element );
   imshow( "Dilation Demo", dilation_dst );
 }
-        
-      
-   
-
