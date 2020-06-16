@@ -26,10 +26,23 @@ cv::Mat src;
 simulator_sauvc_test::Coordinates YF_server;
 ros::ServiceClient YF_client;
 
+
 void make_boundig_box(float x1,float x2,float y1,float y2);
 
 void imageCallback(const sensor_msgs::ImageConstPtr& frame) {
+
   cout<<"## inside callback ##\n";
+  cv::Mat src1;
+  try{
+    src=cv_bridge::toCvShare(frame, "bgr8")->image;
+    ROS_INFO("[Image Received]\n");
+  }catch (cv_bridge::Exception &e) {
+    ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
+              frame->encoding.c_str());
+        }
+
+
+
   if(YF_client.call(YF_server)){
     ROS_INFO("Coordinates are: [%f,%f],[%f,%f],[%f,%f],[%f,%f] ##",
               YF_server.response.x[0],YF_server.response.y[0],
@@ -41,69 +54,30 @@ void imageCallback(const sensor_msgs::ImageConstPtr& frame) {
                       (float)YF_server.response.x[2],(float)YF_server.response.y[2]
                       //(float)YF_server.response.x[3],(float)YF_server.response.y[3]
                     );
-    //cv::imshow("final",src);
-    //cv::waitKey(30);
   }
   else{
     ROS_INFO("Failed to call service : [yellow_flare_coordinates]");
   }
 
-
-  cv::Mat src1;
-  try{
-    src=cv_bridge::toCvShare(frame, "bgr8")->image;
-    //cv_bridge::toCvShare(frame, "bgr8")->image.copyTo(src);
-    ROS_INFO("[Image Received]\n");
-  }catch (cv_bridge::Exception &e) {
-    ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
-              frame->encoding.c_str());
-        }
-  //cv::imshow("inside_function",src);
-  //cv::waitKey(30);
   src1=src.clone();
   line(src1,Point(YF_server.response.x[1],YF_server.response.y[1]), Point(YF_server.response.x[0],YF_server.response.y[0]), Scalar(0,0,255),2,8,0);
   line(src1,Point(YF_server.response.x[3],YF_server.response.y[3]), Point(YF_server.response.x[2],YF_server.response.y[2]), Scalar(0,0,255),2,8,0);
-  //line(src1,Point(365,160),Point(151,134),Scalar(0,0,255),2,8,0);
   cv::imshow("src",src1);
-  waitKey(1);
- // waitKey(3000);
-
-
+  waitKey(10);
 }
 
 
 int main(int argc, char **argv){
-  ros::init(argc,argv,"demo_coordinates_client");
   if(argc!=2){
     ROS_INFO("[usage]: enter 1 to request for image_processing");
   }
+  ros::init(argc,argv,"demo_coordinates_client");
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
-  // cout<<"HERE\n";
+  YF_client=nh.serviceClient<simulator_sauvc_test::Coordinates>("yellow_flare_coordinates");
+  YF_server.request.dummy=atoll(argv[1]);
   image_transport::Subscriber YF_sub=it.subscribe("/front_camera/image_rect_color", 1,
                      imageCallback);
-  // cout<<"HERE\n";
-  YF_client=nh.serviceClient<simulator_sauvc_test::Coordinates>("yellow_flare_coordinates");
-
-  YF_server.request.dummy=atoll(argv[1]);
-
- /* if(YF_client.call(YF_server)){
-    ROS_INFO("Coordinates are: [%f,%f],[%f,%f],[%f,%f],[%f,%f] ##",
-              YF_server.response.x[0],YF_server.response.y[0],
-              YF_server.response.x[1],YF_server.response.y[1],
-              YF_server.response.x[2],YF_server.response.y[2],
-              YF_server.response.x[3],YF_server.response.y[3]);
-    make_boundig_box((float)YF_server.response.x[0],(float)YF_server.response.y[0],
-                      //(float)YF_server.response.x[1],(float)YF_server.response.y[1],
-                      (float)YF_server.response.x[2],(float)YF_server.response.y[2]
-                      //(float)YF_server.response.x[3],(float)YF_server.response.y[3]
-                    );
-    //cv::imshow("final",src);
-    //cv::waitKey(30);
-  }
-  else{
-    ROS_INFO("Failed to call service : [yellow_flare_coordinates]");
-  }*/
   ros::spin();
   return 0;
 }

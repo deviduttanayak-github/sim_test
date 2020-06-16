@@ -163,12 +163,12 @@ bool SimSauvcTest::getGateCoordinates(
     res.x.push_back(max_x);
     res.y.push_back(min_y);
     res.y.push_back(max_y);*/
-   
+
    //--------using hough line------------
-    
+
     vector<Vec4i> linesP; // will hold the results of the detection
     HoughLinesP(GT.canny_frame, linesP, 1, CV_PI/180,50, 50, 10 ); // runs the actual detection
-    
+
     float a,miny=1000,maxy=0,maxx=0;
     for( size_t i = 0; i < linesP.size(); i++ )
     {
@@ -203,7 +203,7 @@ bool SimSauvcTest::getGateCoordinates(
            line( front_image, Point(maxx,maxy), Point((maxx+r*1.732),maxy), Scalar(0,0,255), 3, LINE_AA);
            line( front_image, Point((maxx+r*1.732), miny), Point((maxx+r*1.732),maxy), Scalar(0,0,255), 3, LINE_AA);
            circle(front_image,Point((maxx+r*0.860),(maxy+miny)/2),400/32,Scalar(255,0,0),FILLED,LINE_8);
-               
+
         }*/
     res.x.push_back(maxx);
     res.y.push_back(miny);

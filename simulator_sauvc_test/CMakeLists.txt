@@ -32,7 +32,7 @@ generate_messages(
 
 find_package(OpenCV 3.2 REQUIRED)
 
-# catkin_package()
+catkin_package()
 
 #install(DIRECTORY include/sauvc_image_processing/
 #  DESTINATION include/simultor_sauvc_test/
