@@ -16,12 +16,12 @@ int main(int argc, char** argv){
   image_transport::Publisher pub = it.advertise("/front_camera/image_rect_color", 1);
 
   //ros::Publisher enable_yellow_flare_server_pub=nh.advertise<std_msgs::UInt8>("/enable_yellow_flare_server",1);
-  ros::Publisher enable_gate_server_pub=nh.advertise<std_msgs::UInt8>("/enable_gate_server",1);
-  //ros::Publisher enable_bucket_server_pub = nh.advertise<std_msgs::UInt8>("/enable_bucket_server", 1);
+  //ros::Publisher enable_gate_server_pub=nh.advertise<std_msgs::UInt8>("/enable_gate_server",1);
+  ros::Publisher enable_bucket_server_pub = nh.advertise<std_msgs::UInt8>("/enable_bucket_server", 1);
   //ros::Publisher enable_flare_server_pub = nh.advertise<std_msgs::UInt8>("/enable_flare_server", 1);
 
 
-  cv::VideoCapture cap("/media/devid/D_D_N/simulator/videos/Gate_YFlare_Buckets.avi");
+  cv::VideoCapture cap("/home/pratyush/Downloads/Gate_YFlare_Buckets.mp4");
 
   if(!cap.isOpened()) return 1;
   cv::Mat frame;
@@ -45,8 +45,8 @@ int main(int argc, char** argv){
     }
     pub_cam.publish(k1);
     //enable_yellow_flare_server_pub.publish(k2);
-    enable_gate_server_pub.publish(k3);
-    //enable_bucket_server_pub.publish(k4);
+    //enable_gate_server_pub.publish(k3);
+     enable_bucket_server_pub.publish(k4);
     //enable_flare_server_pub.publish(k5);
     ROS_INFO("publishing");
     ros::spinOnce();

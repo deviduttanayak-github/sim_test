@@ -35,14 +35,9 @@ void imageCallback(const sensor_msgs::ImageConstPtr& frame) {
               YF_server.response.x[0],YF_server.response.y[0],
               YF_server.response.x[1],YF_server.response.y[1],
               YF_server.response.x[2],YF_server.response.y[2],
-              YF_server.response.x[3],YF_server.response.y[3]);
-    make_boundig_box((float)YF_server.response.x[0],(float)YF_server.response.y[0],
-                      //(float)YF_server.response.x[1],(float)YF_server.response.y[1],
-                      (float)YF_server.response.x[2],(float)YF_server.response.y[2]
-                      //(float)YF_server.response.x[3],(float)YF_server.response.y[3]
-                    );
-    //cv::imshow("final",src);
-    //cv::waitKey(30);
+              YF_server.response.x[3],YF_server.response.y[3],
+              YF_server.response.x[4],YF_server.response.y[4],
+              YF_server.response.x[5],YF_server.response.y[5] );
   }
   else{
     ROS_INFO("Failed to call service : [bucket_coordinates]");
@@ -88,23 +83,7 @@ int main(int argc, char **argv){
 
   YF_server.request.dummy=atoll(argv[1]);
 
- /* if(YF_client.call(YF_server)){
-    ROS_INFO("Coordinates are: [%f,%f],[%f,%f],[%f,%f],[%f,%f] ##",
-              YF_server.response.x[0],YF_server.response.y[0],
-              YF_server.response.x[1],YF_server.response.y[1],
-              YF_server.response.x[2],YF_server.response.y[2],
-              YF_server.response.x[3],YF_server.response.y[3]);
-    make_boundig_box((float)YF_server.response.x[0],(float)YF_server.response.y[0],
-                      //(float)YF_server.response.x[1],(float)YF_server.response.y[1],
-                      (float)YF_server.response.x[2],(float)YF_server.response.y[2]
-                      //(float)YF_server.response.x[3],(float)YF_server.response.y[3]
-                    );
-    //cv::imshow("final",src);
-    //cv::waitKey(30);
-  }
-  else{
-    ROS_INFO("Failed to call service : [yellow_flare_coordinates]");
-  }*/
+
   ros::spin();
   return 0;
 }

@@ -98,7 +98,7 @@ int main(int argc,char** argv)
 {
 
 
-  VideoCapture cap("/media/devid/D_D_N/simulator/videos/Gate_YFlare_Buckets.avi");
+  VideoCapture cap("/home/pratyush/Downloads/Gate_YFlare_Buckets.mp4");
 //VideoWriter vd("/home/prats/catkin_ws/src/saved1.mp4",CV_FOURCC('M','J','P','G'),15,Size(100,100),true);
 
   while (1) {

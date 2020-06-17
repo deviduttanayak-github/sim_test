@@ -269,6 +269,8 @@ bool SimSauvcTest::getFlareCoordinates(
       cv::inRange(RF.gauss_frame, Scalar(RF.thresh_l_B, RF.thresh_l_G, RF.thresh_l_R), Scalar(RF.thresh_h_B, RF.thresh_h_G ,RF.thresh_h_R),RF.gray_frame);
       RF.morph_frame=RF.morph_op(RF.gray_frame);
       cv::Canny( RF.morph_frame,RF.canny_frame,RF. canny_low_thresh,RF.canny_ratio,RF.canny_kernel_size );
+    imshow("contour bucke",RF.canny_frame);
+          waitKey(300);
       vector<vector<Point> > contours;
       vector<Vec4i> hierarchy;
 
@@ -282,14 +284,18 @@ bool SimSauvcTest::getFlareCoordinates(
       }
 
       for(size_t i=0;i<contours.size();i++){
-        if(RF.filter_points((boundRect[i].tl()).x)){
+        int diff=(boundRect[i].br().x-boundRect[i].tl().x);
+        if(diff>50){
           res.x.push_back(boundRect[i].tl().x);
           res.y.push_back(boundRect[i].tl().y);
           res.x.push_back(boundRect[i].br().x);
           res.y.push_back(boundRect[i].br().y);
+          rectangle(front_image,boundRect[i].tl(), boundRect[i].br(),Scalar(0,255,0));
         }
       }
-    RF.tl_x.clear();
+    imshow("contour bucket",front_image);
+          waitKey(300);
+    //RF.tl_x.clear();
     return true;
 }
 
