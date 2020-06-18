@@ -21,7 +21,7 @@ int main(int argc, char** argv){
   //ros::Publisher enable_flare_server_pub = nh.advertise<std_msgs::UInt8>("/enable_flare_server", 1);
 
 
-  cv::VideoCapture cap("/home/pratyush/Downloads/Gate_YFlare_Buckets.mp4");
+  cv::VideoCapture cap("/home/devid/catkin_ws/src/client_side/Gate_YFlare_Buckets.mp4");
 
   if(!cap.isOpened()) return 1;
   cv::Mat frame;
