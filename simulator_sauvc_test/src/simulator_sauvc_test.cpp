@@ -51,11 +51,6 @@ void SimSauvcTest::process_next_image_front(
 
   try {
     cv_bridge::toCvShare(image_frame, "bgr8")->image.copyTo(front_image);
-
-    //ROS_INFO("processing next image front camera");
-    //flip(front_image, front_image, -1);
-    // flip(frame_bottom,frame_bottom,0);
-
   } catch (cv_bridge::Exception &e) {
     ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
               image_frame->encoding.c_str());
@@ -87,7 +82,6 @@ void SimSauvcTest::process_next_image_bottom(
     cv_bridge::toCvShare(image_frame, "bgr8")->image.copyTo(bottom_image);
     ROS_INFO("processing next image bottom camera");
     flip(front_image, front_image, -1);
-    // flip(frame_bottom,frame_bottom,0);
 
   } catch (cv_bridge::Exception &e) {
     ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
@@ -136,10 +130,8 @@ bool SimSauvcTest::getGateCoordinates(
     cv::inRange(GT.gauss_frame, Scalar(GT.thresh_l_B, GT.thresh_l_G, GT.thresh_l_R), Scalar(GT.thresh_h_B, GT.thresh_h_G ,GT.thresh_h_R),GT.gray_frame);
     cv::inRange(GT_green.gauss_frame, Scalar(GT_green.thresh_l_B, GT_green.thresh_l_G, GT_green.thresh_l_R), Scalar(GT_green.thresh_h_B, GT_green.thresh_h_G ,GT_green.thresh_h_R),GT_green.gray_frame);
     GT.gray_frame=(GT.gray_frame | GT_green.gray_frame);
-    //GT.morph_frame=GT.morph_op(GT.gray_frame);
     cv::Canny( GT.gray_frame,GT.canny_frame,GT.canny_low_thresh,GT.canny_ratio,GT.canny_kernel_size);
 
-    // //top-left(tl) and bottom-right(br)
     int min_x=1000,min_y=1000, max_x=0, max_y=0;
 
    //--------using hough line------------
@@ -156,13 +148,11 @@ bool SimSauvcTest::getGateCoordinates(
     	  }
         else a=90;
 
-        if (abs(a)>85 /* &&  min(l[1],l[3])>150 */){
-        //line( temp, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
+        if (abs(a)>85){
         min_x=min(min_x,(min(l[0],l[2])));
         max_x=max(max_x,(max(l[0],l[2])));
         min_y=min(min_y,(min(l[1],l[3])));
         max_y=max(max_y,(max(l[1],l[3])));
-        //ROS_INFO("\n points \n [%f,%f,%f,%f] \n",min_x,min_y,max_x,max_y);
         }
     }
       res.x.push_back(min_x);
@@ -269,11 +259,8 @@ bool SimSauvcTest::getFlareCoordinates(
       cv::inRange(RF.gauss_frame, Scalar(RF.thresh_l_B, RF.thresh_l_G, RF.thresh_l_R), Scalar(RF.thresh_h_B, RF.thresh_h_G ,RF.thresh_h_R),RF.gray_frame);
       RF.morph_frame=RF.morph_op(RF.gray_frame);
       cv::Canny( RF.morph_frame,RF.canny_frame,RF. canny_low_thresh,RF.canny_ratio,RF.canny_kernel_size );
-    imshow("contour bucke",RF.canny_frame);
-          waitKey(300);
       vector<vector<Point> > contours;
       vector<Vec4i> hierarchy;
-
       findContours(RF.canny_frame,contours, hierarchy,RETR_TREE,CHAIN_APPROX_SIMPLE);
       vector<vector<Point> > contours_poly(contours.size());
       vector<Rect> boundRect(contours.size());
@@ -293,9 +280,6 @@ bool SimSauvcTest::getFlareCoordinates(
           rectangle(front_image,boundRect[i].tl(), boundRect[i].br(),Scalar(0,255,0));
         }
       }
-    imshow("contour bucket",front_image);
-          waitKey(300);
-    //RF.tl_x.clear();
     return true;
 }
 
@@ -338,9 +322,7 @@ bool SimSauvcTest::getYellowFlareCoordinates(
     cv::Canny( YF.morph_frame,YF.canny_frame,YF. canny_low_thresh,YF.canny_ratio,YF.canny_kernel_size );
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
-    //imshow("server_canny",YF.canny_frame);
-    //waitKey(200);
-
+ 
     findContours(YF.canny_frame,contours, hierarchy,RETR_TREE,CHAIN_APPROX_SIMPLE);
     vector<vector<Point> > contours_poly(contours.size());
     vector<Rect> boundRect(contours.size());

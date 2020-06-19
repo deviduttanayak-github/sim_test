@@ -6,34 +6,12 @@
 using namespace cv;
 using namespace std;
 Mat src,front_image,hsv_frame,gauss_frame,gauss_frame_2,gauss_frame_3,inrange_frame_1,inrange_frame_2,final_frame,final_morph_frame,final_morph_canny_frame;
-/*int red_thresh_l_B,red_thresh_l_G,red_thresh_l_R;
-int red_thresh_h_B,red_thresh_h_G ,red_thresh_h_R;
-int green_thresh_l_B,green_thresh_l_G,green_thresh_l_R;
-int green_thresh_h_B,green_thresh_h_G ,green_thresh_h_R;
-int canny_low_thresh,canny_ratio,canny_kernel_size;
-int morph_operator, morph_elem, morph_size;*/
-
-/*int green_thresh_l_B=40;
-int green_thresh_l_G=40;
-int green_thresh_l_R=40;
-int green_thresh_h_B=70;
-int green_thresh_h_G=255;
-int green_thresh_h_R=255;*/
 int canny_low_thresh=0;
 int canny_ratio=3;
 int canny_kernel_size=3;
 int morph_operator=0;
 int morph_elem=0;
 int morph_size=1;
-/*int red_thresh_l_B=15;
-int red_thresh_l_G=0;
-int red_thresh_l_R=0;
-int red_thresh_h_B=95;
-int red_thresh_h_G=255;
-int red_thresh_h_R=255;*/
-
-
-
 
 Mat morph_op(Mat src)
 {

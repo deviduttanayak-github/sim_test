@@ -26,9 +26,7 @@ cv::Mat src;
 simulator_sauvc_test::Coordinates YF_server;
 ros::ServiceClient YF_client;
 
-
-void make_boundig_box(float x1,float x2,float y1,float y2);
-
+//-------callback function--------
 void imageCallback(const sensor_msgs::ImageConstPtr& frame) {
 
   cout<<"## inside callback ##\n";
@@ -44,24 +42,22 @@ void imageCallback(const sensor_msgs::ImageConstPtr& frame) {
 
 
   if(YF_client.call(YF_server)){
+    //------print the coordinates of two flares---------
     ROS_INFO("Coordinates are: [%f,%f],[%f,%f],[%f,%f],[%f,%f] ##",
               YF_server.response.x[0],YF_server.response.y[0],
               YF_server.response.x[1],YF_server.response.y[1],
               YF_server.response.x[2],YF_server.response.y[2],
               YF_server.response.x[3],YF_server.response.y[3]);
-    make_boundig_box((float)YF_server.response.x[0],(float)YF_server.response.y[0],
-                      //(float)YF_server.response.x[1],(float)YF_server.response.y[1],
-                      (float)YF_server.response.x[2],(float)YF_server.response.y[2]
-                      //(float)YF_server.response.x[3],(float)YF_server.response.y[3]
-                    );
+                    
   }
   else{
     ROS_INFO("Failed to call service : [yellow_flare_coordinates]");
   }
 
   src1=src.clone();
-  line(src1,Point(YF_server.response.x[1],YF_server.response.y[1]), Point(YF_server.response.x[0],YF_server.response.y[0]), Scalar(0,0,255),2,8,0);
-  line(src1,Point(YF_server.response.x[3],YF_server.response.y[3]), Point(YF_server.response.x[2],YF_server.response.y[2]), Scalar(0,0,255),2,8,0);
+  //----do the bounding box on two flares-----
+  rectangle(src1,Point(YF_server.response.x[1],YF_server.response.y[1]), Point(YF_server.response.x[0],YF_server.response.y[0]), Scalar(0,0,255),2,8,0);
+  rectangle(src1,Point(YF_server.response.x[3],YF_server.response.y[3]), Point(YF_server.response.x[2],YF_server.response.y[2]), Scalar(0,0,255),2,8,0);
   cv::imshow("src",src1);
   waitKey(10);
 }
@@ -74,6 +70,7 @@ int main(int argc, char **argv){
   ros::init(argc,argv,"demo_coordinates_client");
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
+  //define the client
   YF_client=nh.serviceClient<simulator_sauvc_test::Coordinates>("yellow_flare_coordinates");
   YF_server.request.dummy=atoll(argv[1]);
   image_transport::Subscriber YF_sub=it.subscribe("/front_camera/image_rect_color", 1,
@@ -82,7 +79,3 @@ int main(int argc, char **argv){
   return 0;
 }
 
-void make_boundig_box(float x1,float x2,float y1,float y2){
-  cout<<"inside make_bounding_box\n";
-  ROS_INFO("[%f,%f],[%f,%f]",x1,y1,x2,y2);
-}

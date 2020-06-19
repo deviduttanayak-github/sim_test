@@ -91,12 +91,12 @@ ImageProcessor::~ImageProcessor(){
   std::cout << "destructed" << '\n';
 
 }
-
+//-----function to filter out points------
 bool ImageProcessor::filter_points(int x){
   for(int i=0; i<tl_x.size(); i++){
     if(abs(tl_x[i]-x)<15) return false;
   }
-  tl_x.push_back(x); //tl_y.push_back(y);
+  tl_x.push_back(x);
   std::cout << "## filter_points : true : " << tl_x.size()<<'\n';
   return true;
 }

@@ -193,19 +193,10 @@ else a=90;
      imshow("view",frame);
 
 
-    // Show results
-    //imshow("Source", src);
-    //imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
-
-
 
 }
 return 0;
 }
-
-/*vd.write(dilation_dst);i
-  int key=waitKey(100);
-    if(key==27)break;*/
 
 
 

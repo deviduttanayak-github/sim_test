@@ -38,7 +38,6 @@ void imageCallback(const sensor_msgs::ImageConstPtr& frame) {
   cv::Mat src1;
   try{
     src=cv_bridge::toCvShare(frame, "bgr8")->image;
-    //cv_bridge::toCvShare(frame, "bgr8")->image.copyTo(src);
     ROS_INFO("[Image Received]\n");
   }catch (cv_bridge::Exception &e) {
     ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
@@ -47,8 +46,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& frame) {
   src1=src.clone();
 
   src1=src.clone();
-  line(src1,Point(gate_server.response.x[0],gate_server.response.y[0]), Point(gate_server.response.x[1],gate_server.response.y[1]), Scalar(0,0,255),2,8,0);
-  //line(src1,Point(YF_server.response.x[3],YF_server.response.y[3]), Point(YF_server.response.x[2],YF_server.response.y[2]), Scalar(0,0,255),2,8,0);
+  //----do the bounding box from coordinates---
+  rectangle(src1,Point(gate_server.response.x[0],gate_server.response.y[0]), Point(gate_server.response.x[1],gate_server.response.y[1]), Scalar(0,0,255),2,8,0);
   cv::imshow("src",src1);
   waitKey(10);
 
@@ -57,10 +56,6 @@ void imageCallback(const sensor_msgs::ImageConstPtr& frame) {
   else{
     ROS_INFO("Failed to call service : [gate_flare_coordinates]");
   }
-
-
-
- // waitKey(3000);
 
 
 }
@@ -73,36 +68,13 @@ int main(int argc, char **argv){
   }
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
-  // cout<<"HERE\n";
   image_transport::Subscriber YF_sub=it.subscribe("/front_camera/image_rect_color", 1,
                      imageCallback);
-  // cout<<"HERE\n";
   gate_client=nh.serviceClient<simulator_sauvc_test::Coordinates>("gate_coordinates");
 
   gate_server.request.dummy=atoll(argv[1]);
 
- /* if(YF_client.call(YF_server)){
-    ROS_INFO("Coordinates are: [%f,%f],[%f,%f],[%f,%f],[%f,%f] ##",
-              YF_server.response.x[0],YF_server.response.y[0],
-              YF_server.response.x[1],YF_server.response.y[1],
-              YF_server.response.x[2],YF_server.response.y[2],
-              YF_server.response.x[3],YF_server.response.y[3]);
-    make_boundig_box((float)YF_server.response.x[0],(float)YF_server.response.y[0],
-                      //(float)YF_server.response.x[1],(float)YF_server.response.y[1],
-                      (float)YF_server.response.x[2],(float)YF_server.response.y[2]
-                      //(float)YF_server.response.x[3],(float)YF_server.response.y[3]
-                    );
-    //cv::imshow("final",src);
-    //cv::waitKey(30);
-  }
-  else{
-    ROS_INFO("Failed to call service : [yellow_flare_coordinates]");
-  }*/
   ros::spin();
   return 0;
 }
 
-void make_boundig_box(float x1,float x2,float y1,float y2){
-  cout<<"inside make_bounding_box\n";
-  ROS_INFO("[%f,%f],[%f,%f]",x1,y1,x2,y2);
-}
