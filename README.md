@@ -7,7 +7,7 @@ to run:
 3. the start the server by 'rosrun simulator_sauvc_test simulator_sauvc_test'
 4.make sure the video paths in this client_side/src/test_sim.cpp should be valid
 5.There r 2 video paths in client_side/src/test_sim.cpp 
-6.replace the first one with gate_YFlare_Buckets.avi from the link https://drive.google.com/drive/folders/1pCGvZHEk6q7VWagi3hgZysiZJcvMBvwI
+6.replace the first one with gate_YFlare_Buckets.avi from the link- https://drive.google.com/drive/folders/1pCGvZHEk6q7VWagi3hgZysiZJcvMBvwI
 7.replace the 2nd one with gate_YFlare_Buckets.mp4 which is available in the repo in the client_side folder
 8. then to provide data to necessary topic run 'rosrun client_side test_ser code' [code = 0(for yellow flare),1(for gate),2(for red bucket),3(for red flare)]
 9. then make request to server:
