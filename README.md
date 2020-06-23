@@ -16,3 +16,7 @@ to run:
 	rosrun client_side bucket_red 1	-> for red bucket detection
 	rosrun client_side red 1	-> for yellow flare detection
 10. u can see the requested bounding coordinates in the terminal and and bounding box drawn in the displayed frame named src
+
+### OR
+
+1. run the sim.sh by typing "bash sim.sh" in terminal inside catkin workspace

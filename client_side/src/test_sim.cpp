@@ -21,7 +21,7 @@ int main(int argc, char** argv){
   ros::Publisher enable_flare_server_pub = nh.advertise<std_msgs::UInt8>("/enable_flare_server", 1);
 
 
-  cv::VideoCapture cap("/home/pratyush/Downloads/Gate_YFlare_Buckets.mp4");//gate yflare buckets video
+  cv::VideoCapture cap("/home/devid/catkin_ws/src/client_side/Gate_YFlare_Buckets.mp4");//gate yflare buckets video
 
   cv::VideoCapture cap2("/home/pratyush/Downloads/Gate_YFlare_Buckets.avi");//gate yflare bucktes video(containing only buckets part)
 
@@ -56,7 +56,7 @@ int main(int argc, char** argv){
       enable_bucket_server_pub.publish(k2);
     if(code==3)
       enable_flare_server_pub.publish(k2);
-    ROS_INFO("publishing");
+    //ROS_INFO("publishing");
     ros::spinOnce();
     loop_rate.sleep();
   }
